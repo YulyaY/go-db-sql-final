@@ -15,26 +15,17 @@ func NewParcelStore(db *sql.DB) ParcelStore {
 
 func (s ParcelStore) Add(p Parcel) (int, error) {
 	// реализуйте добавление строки в таблицу parcel, используйте данные из переменной p
-	// db, err := sql.Open("sqlite", "tracker.db")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return 0, err
-	// }
-	// defer db.Close()
-
 	res, err := s.db.Exec("INSERT INTO parcel (client, status, address, created_at) VALUES (:client, :status, :address, :created_at)",
 		sql.Named("client", p.Client),
 		sql.Named("status", p.Status),
 		sql.Named("address", p.Address),
 		sql.Named("created_at", p.CreatedAt))
 	if err != nil {
-		fmt.Println(err)
-		return 0, err
+		return 0, fmt.Errorf("ParcelStore.Add insert error: %w", err)
 	}
 	idLast, err := res.LastInsertId()
 	if err != nil {
-		fmt.Println(err)
-		return 0, err
+		return 0, fmt.Errorf("ParcelStore.Add insert error: %w", err)
 	}
 	// верните идентификатор последней добавленной записи
 	return int(idLast), nil
@@ -47,8 +38,7 @@ func (s ParcelStore) Get(number int) (Parcel, error) {
 	row := s.db.QueryRow("SELECT number, client, status, address, created_at FROM parcel WHERE number = :number", sql.Named("number", number))
 	err := row.Scan(&p.Number, &p.Client, &p.Status, &p.Address, &p.CreatedAt)
 	if err != nil {
-		fmt.Println(err)
-		return p, err
+		return p, fmt.Errorf("ParcelStore.Get insert error: %w", err)
 	}
 	return p, nil
 }
@@ -58,8 +48,7 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 	// здесь из таблицы может вернуться несколько строк
 	rows, err := s.db.Query("SELECT number, client, status, address, created_at FROM parcel WHERE client = :client", sql.Named("client", client))
 	if err != nil {
-		fmt.Println(err)
-		return nil, err
+		return nil, fmt.Errorf("ParcelStore.GetByClient insert error: %w", err)
 	}
 	defer rows.Close()
 
@@ -69,15 +58,13 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 
 		err := rows.Scan(&p.Number, &p.Client, &p.Status, &p.Address, &p.CreatedAt)
 		if err != nil {
-			fmt.Println(err)
-			return nil, err
+			return nil, fmt.Errorf("ParcelStore.GetByClient insert error: %w", err)
 		}
 
 		res = append(res, p)
 	}
 	if err := rows.Err(); err != nil {
-		fmt.Println(err)
-		return nil, err
+		return nil, fmt.Errorf("ParcelStore.GetByClient insert error: %w", err)
 	}
 	return res, nil
 }
@@ -88,8 +75,7 @@ func (s ParcelStore) SetStatus(number int, status string) error {
 		sql.Named("status", status),
 		sql.Named("number", number))
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return fmt.Errorf("ParcelStore.SetStatus insert error: %w", err)
 	}
 	return nil
 }
@@ -101,8 +87,7 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 	row := s.db.QueryRow("SELECT number, client, status, address, created_at FROM parcel WHERE number = :number", sql.Named("number", number))
 	err := row.Scan(&p.Number, &p.Client, &p.Status, &p.Address, &p.CreatedAt)
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return fmt.Errorf("ParcelStore.SetAddress insert error: %w", err)
 	}
 	if p.Status != ParcelStatusRegistered {
 		return nil
@@ -111,8 +96,7 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 		sql.Named("address", address),
 		sql.Named("number", number))
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return fmt.Errorf("ParcelStore.SetAddress insert error: %w", err)
 	}
 	return nil
 }
@@ -124,16 +108,14 @@ func (s ParcelStore) Delete(number int) error {
 	row := s.db.QueryRow("SELECT number, client, status, address, created_at FROM parcel WHERE number = :number", sql.Named("number", number))
 	err := row.Scan(&p.Number, &p.Client, &p.Status, &p.Address, &p.CreatedAt)
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return fmt.Errorf("ParcelStore.Delete insert error: %w", err)
 	}
 	if p.Status != ParcelStatusRegistered {
 		return nil
 	}
 	_, err = s.db.Exec("DELETE FROM parcel WHERE number = :number", sql.Named("number", number))
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return fmt.Errorf("ParcelStore.Delete insert error: %w", err)
 	}
 	return nil
 }
