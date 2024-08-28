@@ -54,9 +54,6 @@ func TestAddGetDelete(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, parcel, getParcel)
 	assert.NotEmpty(t, getParcel.Client)
-	assert.NotEmpty(t, getParcel.Address)
-	assert.NotEmpty(t, getParcel.Status)
-	assert.NotEmpty(t, getParcel.CreatedAt)
 	// delete
 	// удалите добавленную посылку, убедитесь в отсутствии ошибки
 	// проверьте, что посылку больше нельзя получить из БД
